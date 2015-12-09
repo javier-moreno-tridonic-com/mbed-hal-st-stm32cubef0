@@ -21,9 +21,6 @@
  * put here as it depends on some APIs that need uVisor to be enabled */
 HAL_StatusTypeDef HAL_InitPre(void)
 {
-    /* Set Interrupt Group Priority */
-    HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
-
     /* Return function status */
     return HAL_OK;
 }
