@@ -1218,7 +1218,7 @@ HAL_StatusTypeDef HAL_I2C_Slave_Receive_IT(I2C_HandleTypeDef *hi2c, uint8_t *pDa
   * @param  Size: Amount of data to be sent
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size)
+HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, char rStart)
 {
   if(hi2c->State == HAL_I2C_STATE_READY)
   {
@@ -1227,17 +1227,17 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t 
       return  HAL_ERROR;                                    
     }     
 
-    if(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_BUSY) == SET)
-    {
-      return HAL_BUSY;
-    }
+//    if(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_BUSY) == SET)
+//    {
+//      return HAL_BUSY;
+//    }
 
     /* Process Locked */
     __HAL_LOCK(hi2c);
     
     hi2c->State = HAL_I2C_STATE_MASTER_BUSY_TX;
     hi2c->ErrorCode   = HAL_I2C_ERROR_NONE;
-    
+    hi2c->rStart = rStart;
     hi2c->pBuffPtr = pData;
     hi2c->XferCount = Size;
     if(Size > 255)
@@ -1309,7 +1309,7 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t 
   * @param  Size: Amount of data to be sent
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_I2C_Master_Receive_DMA(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size)
+HAL_StatusTypeDef HAL_I2C_Master_Receive_DMA(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, char rStart)
 {
   if(hi2c->State == HAL_I2C_STATE_READY)
   {
@@ -1318,17 +1318,17 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive_DMA(I2C_HandleTypeDef *hi2c, uint16_t D
       return  HAL_ERROR;                                    
     }  
 
-    if(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_BUSY) == SET)
-    {
-      return HAL_BUSY;
-    }
+//    if(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_BUSY) == SET)
+//    {
+//      return HAL_BUSY;
+//    }
 
     /* Process Locked */
     __HAL_LOCK(hi2c);
     
     hi2c->State = HAL_I2C_STATE_MASTER_BUSY_RX;
     hi2c->ErrorCode   = HAL_I2C_ERROR_NONE;
-    
+    hi2c->rStart = rStart;
     hi2c->pBuffPtr = pData;
     hi2c->XferCount = Size;
     if(Size > 255)
@@ -1420,12 +1420,12 @@ HAL_StatusTypeDef HAL_I2C_Slave_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint8_t *p
     hi2c->Instance->CR2 &= ~I2C_CR2_NACK;
 
     /* Wait until ADDR flag is set */
-    if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_ADDR, RESET, I2C_TIMEOUT_ADDR) != HAL_OK)      
-    {
-      /* Disable Address Acknowledge */
-      hi2c->Instance->CR2 |= I2C_CR2_NACK;
-      return HAL_TIMEOUT;
-    }
+//    if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_ADDR, RESET, I2C_TIMEOUT_ADDR) != HAL_OK)      
+//    {
+//      /* Disable Address Acknowledge */
+//      hi2c->Instance->CR2 |= I2C_CR2_NACK;
+//      return HAL_TIMEOUT;
+//    }
 
     /* Clear ADDR flag */
     __HAL_I2C_CLEAR_FLAG(hi2c,I2C_FLAG_ADDR);
@@ -1487,7 +1487,7 @@ HAL_StatusTypeDef HAL_I2C_Slave_Receive_DMA(I2C_HandleTypeDef *hi2c, uint8_t *pD
     __HAL_LOCK(hi2c);
     
     hi2c->State = HAL_I2C_STATE_SLAVE_BUSY_RX;
-    hi2c->ErrorCode   = HAL_I2C_ERROR_NONE;
+    hi2c->ErrorCode = HAL_I2C_ERROR_NONE;
     
     hi2c->pBuffPtr = pData;
     hi2c->XferSize = Size;
@@ -1506,12 +1506,12 @@ HAL_StatusTypeDef HAL_I2C_Slave_Receive_DMA(I2C_HandleTypeDef *hi2c, uint8_t *pD
     hi2c->Instance->CR2 &= ~I2C_CR2_NACK;
 
     /* Wait until ADDR flag is set */
-    if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_ADDR, RESET, I2C_TIMEOUT_ADDR) != HAL_OK)      
-    {
-      /* Disable Address Acknowledge */
-      hi2c->Instance->CR2 |= I2C_CR2_NACK;
-      return HAL_TIMEOUT;
-    }
+//    if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_ADDR, RESET, I2C_TIMEOUT_ADDR) != HAL_OK)      
+//    {
+//     /* Disable Address Acknowledge */
+//      hi2c->Instance->CR2 |= I2C_CR2_NACK;
+//      return HAL_TIMEOUT;
+//   }
 
     /* Clear ADDR flag */
     __HAL_I2C_CLEAR_FLAG(hi2c,I2C_FLAG_ADDR);
@@ -3242,10 +3242,10 @@ static void I2C_DMASlaveTransmitCplt(DMA_HandleTypeDef *hdma)
   __HAL_I2C_CLEAR_FLAG(hi2c,I2C_FLAG_STOPF);
   
   /* Wait until BUSY flag is reset */ 
-  if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BUSY, SET, I2C_TIMEOUT_BUSY) != HAL_OK)      
-  {
-    hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
-  }
+//  if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BUSY, SET, I2C_TIMEOUT_BUSY) != HAL_OK)      
+//  {
+//    hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
+//  }
   
   /* Disable DMA Request */
   hi2c->Instance->CR1 &= ~I2C_CR1_TXDMAEN; 
@@ -3438,32 +3438,34 @@ static void I2C_DMASlaveReceiveCplt(DMA_HandleTypeDef *hdma)
   I2C_HandleTypeDef* hi2c = (I2C_HandleTypeDef*)((DMA_HandleTypeDef*)hdma)->Parent;
   
   /* Wait until STOPF flag is reset */ 
-  if(I2C_WaitOnSTOPFlagUntilTimeout(hi2c, I2C_TIMEOUT_STOPF) != HAL_OK)
-  {
-    if(hi2c->ErrorCode == HAL_I2C_ERROR_AF)
-    {
-      hi2c->ErrorCode |= HAL_I2C_ERROR_AF;
-    }
-    else
-    {
-      hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
-    }
-  }
+  //if(I2C_WaitOnSTOPFlagUntilTimeout(hi2c, I2C_TIMEOUT_STOPF) != HAL_OK)
+  //{
+  //  if(hi2c->ErrorCode == HAL_I2C_ERROR_AF)
+  //  {
+  //    hi2c->ErrorCode |= HAL_I2C_ERROR_AF;
+  //  }
+  //  else
+  //  {
+  //    hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
+  //  }
+  //}
   
   /* Clear STOPF flag */
   __HAL_I2C_CLEAR_FLAG(hi2c, I2C_FLAG_STOPF);
   
   /* Wait until BUSY flag is reset */ 
-  if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BUSY, SET, I2C_TIMEOUT_BUSY) != HAL_OK)      
-  {
-    hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
-  }
+//  if(I2C_WaitOnFlagUntilTimeout(hi2c, I2C_FLAG_BUSY, SET, I2C_TIMEOUT_BUSY) != HAL_OK)      
+//  {
+//    hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
+//  }
   
   /* Disable DMA Request */
   hi2c->Instance->CR1 &= ~I2C_CR1_RXDMAEN; 
   
+  /* Enable Address Acknowledge */
+  hi2c->Instance->CR2 &= ~I2C_CR2_NACK;
   /* Disable Address Acknowledge */
-  hi2c->Instance->CR2 |= I2C_CR2_NACK;
+  //hi2c->Instance->CR2 |= I2C_CR2_NACK;
 
   hi2c->XferCount = 0;
   
@@ -3808,7 +3810,7 @@ static void I2C_DMAError(DMA_HandleTypeDef *hdma)
   I2C_HandleTypeDef* hi2c = ( I2C_HandleTypeDef* )((DMA_HandleTypeDef* )hdma)->Parent;
   
   /* Disable Acknowledge */
-  hi2c->Instance->CR2 |= I2C_CR2_NACK;
+  //hi2c->Instance->CR2 |= I2C_CR2_NACK;
   
   hi2c->XferCount = 0;
   
