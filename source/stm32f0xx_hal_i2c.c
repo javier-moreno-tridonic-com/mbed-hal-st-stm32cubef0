@@ -1272,8 +1272,11 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit_DMA(I2C_HandleTypeDef *hi2c, uint16_t 
     /* Wait until TXIS flag is set */
     if(I2C_WaitOnTXISFlagUntilTimeout(hi2c, I2C_TIMEOUT_TXIS) != HAL_OK)
     {
-      /* Disable Address Acknowledge */
-      hi2c->Instance->CR2 |= I2C_CR2_NACK;
+      /* clear NACKF bit in ISR */
+      hi2c->Instance->ICR |= I2C_ICR_NACKCF;
+
+      /* Process Unlocked */
+      __HAL_UNLOCK(hi2c);
 
       if(hi2c->ErrorCode == HAL_I2C_ERROR_AF)
       {
@@ -4003,7 +4006,7 @@ static HAL_StatusTypeDef I2C_IsAcknowledgeFailed(I2C_HandleTypeDef *hi2c, uint32
   uint32_t tickstart = 0x00;
   tickstart = HAL_GetTick();
 
-  if(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_AF) == SET)
+  if(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_AF) == SET)		// not acknowledge received ?
   {
     /* Generate stop if necessary only in case of I2C peripheral in MASTER mode */
     if((hi2c->State == HAL_I2C_STATE_MASTER_BUSY_TX) || (hi2c->State == HAL_I2C_STATE_MEM_BUSY_TX)
