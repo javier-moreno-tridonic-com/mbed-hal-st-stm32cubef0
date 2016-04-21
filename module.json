@@ -1,6 +1,6 @@
 {
   "name": "mbed-hal-st-stm32cubef0",
-  "version": "0.0.0-tri-0.0.5",
+  "version": "0.0.0-tri-0.1.6",
   "description": "STM32Cube HAL for STM32F0 microcontrollers",
   "keywords": [],
   "author": "",
@@ -14,7 +14,7 @@
     "mbed-hal-st-stm32cubef0"
   ],
   "dependencies": {
-    "mbed-hal-st-stm32f0": "tridonic-com/mbed-hal-st-stm32f0#0.0.0-tri-0.0.5"
+    "mbed-hal-st-stm32f0": "tridonic-com/mbed-hal-st-stm32f0#b0.0.0-tri-0.1.6"
   },
   "targetDependencies": {}
 }
