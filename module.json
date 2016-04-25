@@ -1,9 +1,13 @@
 {
   "name": "mbed-hal-st-stm32cubef0",
-  "version": "0.0.0-tri-0.0.5",
-  "description": "STM32Cube HAL for STM32F0 microcontrollers",
-  "keywords": [],
+  "version": "0.1.1-tri-0.4.0",
+  "description": "STM32F0xx HAL driver V1.3.0 for STM32F0 microcontrollers",
+  "keywords": [
+    "mbed",
+    "mbed-official"
+  ],
   "author": "",
+  "homepage": "https://github.com/ARMmbed/mbed-hal-st-stm32cubef0",
   "licenses": [
     {
       "url": "https://spdx.org/licenses/BSD-3-Clause",
@@ -14,7 +18,8 @@
     "mbed-hal-st-stm32cubef0"
   ],
   "dependencies": {
-    "mbed-hal-st-stm32f0": "tridonic-com/mbed-hal-st-stm32f0#0.0.0-tri-0.0.5"
+    "uvisor-lib": "^1.0.0",
+    "mbed-hal-st-stm32f0": "tridonic-com/mbed-hal-st-stm32f0#b0.3.1-tri-0.4.0"
   },
   "targetDependencies": {}
 }
