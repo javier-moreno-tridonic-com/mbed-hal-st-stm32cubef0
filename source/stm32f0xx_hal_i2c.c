@@ -4009,8 +4009,13 @@ static HAL_StatusTypeDef I2C_WaitOnFlagUntilTimeout(I2C_HandleTypeDef *hi2c, uin
 static HAL_StatusTypeDef I2C_WaitOnTXISFlagUntilTimeout(I2C_HandleTypeDef *hi2c, uint32_t Timeout)  
 {  
   uint32_t tickstart = HAL_GetTick();
+  uint32_t checkTickerCounter;
+  uint8_t temp_for_debug;
+
+  temp_for_debug = 0;
+  checkTickerCounter = 0;
   
-  while(__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_TXIS) == RESET)
+  while((__HAL_I2C_GET_FLAG(hi2c, I2C_FLAG_TXIS) == RESET))// || checkTickerCounter < 2^31)
   {
     /* Check if a NACK is detected */
     if(I2C_IsAcknowledgeFailed(hi2c, Timeout) != HAL_OK)
@@ -4018,16 +4023,31 @@ static HAL_StatusTypeDef I2C_WaitOnTXISFlagUntilTimeout(I2C_HandleTypeDef *hi2c,
       return HAL_ERROR;
     }
 
+    /* Increment counter as a partial solution for the
+     * https://git.dev.zgrp.net/stc/tri-stc-driver-acdc/issues/9 problem */
+//    if ((HAL_GetTick() - tickstart) == 0)
+//    {
+        checkTickerCounter++;
+//   }
+
     /* Check for the Timeout */
     if(Timeout != HAL_MAX_DELAY)
     {
-      if((Timeout == 0) || ((HAL_GetTick() - tickstart) > Timeout))
+        /*
+         * Introduced a partial fix for exiting this loop even when in an interrupt context
+         * I verified that checkTickerCounter=289 for Timeout=1. Thus 289
+         * Thus I consider that checkTickerCounter should be greater than Timeout*300 to exit the cycle.
+         */
+      if((Timeout == 0) || ((HAL_GetTick() - tickstart) > Timeout) || (checkTickerCounter > Timeout*300))
       {
         hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
         hi2c->State= HAL_I2C_STATE_READY;
 
         /* Process Unlocked */
         __HAL_UNLOCK(hi2c);
+
+        checkTickerCounter++; // ADDED FOR TEST
+        temp_for_debug++; // ADDED FOR TEST
 
         return HAL_TIMEOUT;
       }
