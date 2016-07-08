@@ -4035,10 +4035,11 @@ static HAL_StatusTypeDef I2C_WaitOnTXISFlagUntilTimeout(I2C_HandleTypeDef *hi2c,
     {
         /*
          * Introduced a partial fix for exiting this loop even when in an interrupt context
-         * I verified that checkTickerCounter=289 for Timeout=1. Thus 289
-         * Thus I consider that checkTickerCounter should be greater than Timeout*300 to exit the cycle.
+         * I verified that checkTickerCounter=289 for Timeout=1.
+         * I enlarge it by 10% (*110/100)
+         * Thus I consider that checkTickerCounter should be greater than Timeout*289*110/100 to exit the cycle.
          */
-      if((Timeout == 0) || ((HAL_GetTick() - tickstart) > Timeout) || (checkTickerCounter > Timeout*300))
+      if((Timeout == 0) || ((HAL_GetTick() - tickstart) > Timeout) || (checkTickerCounter > Timeout*289*110/100))
       {
         hi2c->ErrorCode |= HAL_I2C_ERROR_TIMEOUT;
         hi2c->State= HAL_I2C_STATE_READY;
